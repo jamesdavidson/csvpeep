@@ -69,7 +69,10 @@
   (.selectObjectContent client (clj->js args)
    #(do
      (if %1 (js/console.error %1)
-            (put! ch (-> %2 js->clj keywordize-keys :Payload first)))
+            (put! ch (->> %2 js->clj keywordize-keys :Payload
+                          (map :Records)
+                          (map :Payload)
+                          (apply str))))
      (close! ch)))
   ch))
 
@@ -82,7 +85,6 @@
   (go
    (when-let [result (<! (select-object-content params))]
     (let [names (map read-string (-> result
-                                    :Records :Payload str
                                     clojure.string/split-lines first
                                     (.replace "\r" "") ;; workaround for S3's buggy quoting of last value in any given row
                                     (clojure.string/split ",")))
@@ -190,7 +192,6 @@
                                                                               :default "NONE")},
                                   :OutputSerialization {:JSON {}}}]
                      (when-let [records (->> (<! (select-object-content params))
-                                          :Records :Payload str
                                           clojure.string/split-lines
                                           (map #(try (js/JSON.parse %) (catch js/Error _ nil)))
                                           (remove nil?)
