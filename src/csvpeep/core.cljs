@@ -222,7 +222,7 @@
 
 (defn home-page []
  (let [{::keys [key show-sql]} @state]
-  [:div
+  [:div.container
    (when-not (nil? key)
     [:div.float-left.btn-group-vertical {:role "group"}
      [:button.btn.btn-secondary
